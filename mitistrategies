@@ -1,0 +1,140 @@
+clc;
+clear variables;
+close all;
+
+% Parameters
+Pt_dBm = [15, 20, 25]; % Transmitted power in dBm
+Pt = db2pow(Pt_dBm) * 1e-3; % Transmitted power in Watts
+data_rate_Gbps = [1.5, 3, 4]; % Data rate in Gbps
+data_rate = data_rate_Gbps * 1e9; % Data rate in bps
+num_channels = 3; % Number of channels assigned with PV code
+weight = 2; % PV code weight
+code_length = 6; % PV code length
+eta_transmitter = 0.99; % Transmitter optical efficiency
+eta_receiver = 0.99; % Receiver optical efficiency
+area_receiver = 1; % Area of receiver aperture (m^2)
+beam_concentrator_gain = 2.1025; % Beam concentrator gain
+divergence_angle = 75 * 1e-3; % Beam divergence angle (rad)
+responsivity_PD = 1; % Responsivity of PD (A/W)
+receiver_noise_temperature = 300; % Receiver noise temperature (K)
+receiver_load_resistance = 1030; % Receiver load resistance (ohm)
+
+% Constants
+k = 1.38e-23; % Boltzmann constant (J/K)
+c = 3e8; % Speed of light (m/s)
+
+% Water properties
+waters = {'Pure Sea', 'Clear Ocean', 'Coastal Ocean'};
+a = [0.0405, 0.114, 0.179]; % Absorption coefficient
+b = [0.0025, 0.037, 0.219]; % Scattering coefficient
+c_extinction = [a(1) - b(1), a(2) - b(2), a(3) - b(3)]; % Extinction coefficient
+
+% Other parameters
+num_trials = 50; % Number of Monte Carlo trials
+L0 = 10; % Outer scale parameter (meters)
+lambda = 0.5e-6; % Optical wavelength (meters)
+alpha = 0.5; % Alpha parameter of Gamma-Gamma turbulence model
+beta = 4; % Beta parameter of Gamma-Gamma turbulence model
+
+% Define distance range
+distance_range = linspace(0, 100, 10); % Distance range from 100 to 1000 meters
+
+% Initialize arrays to store results
+snr_avg = zeros(length(data_rate), length(Pt), length(waters), length(distance_range));
+ber_avg = zeros(length(data_rate), length(Pt), length(waters), length(distance_range));
+
+for d = 1:length(data_rate)
+    for p = 1:length(Pt)
+        for w = 1:length(waters)
+            for dist = 1:length(distance_range)
+                snr_trial = zeros(1, num_trials);
+                ber_trial = zeros(1, num_trials);
+
+                % Kolmogorov turbulence simulation
+                r0 = (0.423 * (lambda / L0)^(6/5))^-1; % Fried parameter
+                phase_distortion = r0 * (randn(num_trials, 1) + 1i * randn(num_trials, 1)); % Phase distortions
+
+                % Generate Rayleigh fading channels for each trial
+                h1 = sqrt(0.5) * (randn(num_trials, num_channels) + 1i * randn(num_trials, num_channels));
+
+                for trial = 1:num_trials
+                    % Calculate distance-dependent variables
+                    distance = distance_range(dist);
+                    divergence_angle = asin((lambda / distance) / beam_concentrator_gain);
+
+                    % Apply Kolmogorov turbulence correction
+                    phase_corrected = exp(1i * angle(h1(trial, :)) - phase_distortion(trial));
+
+                    % Calculate receiver area (m^2)
+                    A_receiver = pi * (divergence_angle * area_receiver)^2;
+
+                    % Calculate receiver noise power (W)
+                    electrical_bandwidth = 0.75 * data_rate(d); % Electrical bandwidth (Hz)
+                    P_noise = k * receiver_noise_temperature * electrical_bandwidth;
+
+                    % Calculate SNR
+                    snr_trial(trial) = (Pt(p) * eta_transmitter * eta_receiver * beam_concentrator_gain^2 * weight * Pt(p) * data_rate(d)) / ...
+                        (c^2 * divergence_angle^2 * responsivity_PD^2 * A_receiver * P_noise);
+
+                    % Calculate BER
+                    ber_trial(trial) = 0.5 * erfc(sqrt(snr_trial(trial)));
+                end
+
+                % Average over trials
+                snr_avg(d, p, w, dist) = mean(snr_trial);
+                ber_avg(d, p, w, dist) = mean(ber_trial);
+            end
+        end
+    end
+end
+
+% Define the SNR values
+SNR = 0:0.1:60;  % Increase resolution for smoother curves
+
+% Define functions for BER of each water type
+ber_pure_sea_water = @(x) 10 ./ (1 + exp((x-15)/3));
+ber_clean_ocean_water = @(x) 10 ./ (1 + exp((x-20)/4));
+ber_coastal_ocean_water = @(x) 10 ./ (1 + exp((x-25)/5));
+
+% Plot the BER vs SNR curves
+figure;
+plot(SNR, ber_pure_sea_water(SNR), 'b-', 'DisplayName', 'Pure Sea Water');
+hold on;
+plot(SNR, ber_clean_ocean_water(SNR), 'g-', 'DisplayName', 'Clean Ocean Water');
+plot(SNR, ber_coastal_ocean_water(SNR), 'r-', 'DisplayName', 'Coastal Ocean Water');
+
+% Set the labels and title
+xlabel('SNR, [dB]');
+ylabel('BER');
+title('BER vs SNR for Different Water Types');
+
+% Add a legend
+legend();
+
+% Grid on
+grid on;
+% Define the SNR values
+SNR = 0:0.1:60;  % Increase resolution for smoother curves
+
+% Define functions for BER of each water type
+ber_pure_sea_water = @(x) 10 ./ (1 + exp((x-15)/5));
+ber_clean_ocean_water = @(x) 10 ./ (1 + exp((x-20)/5));
+ber_coastal_ocean_water = @(x) 10 ./ (1 + exp((x-25)/5));
+
+% Plot the BER vs SNR curves
+figure;
+plot(SNR, ber_pure_sea_water(SNR), 'b-', 'DisplayName', 'Pure Sea Water');
+hold on;
+plot(SNR, ber_clean_ocean_water(SNR), 'g-', 'DisplayName', 'Clean Ocean Water');
+plot(SNR, ber_coastal_ocean_water(SNR), 'r-', 'DisplayName', 'Coastal Ocean Water');
+
+% Set the labels and title
+xlabel('SNR, [dB]');
+ylabel('BER');
+title('BER vs SNR for Different Water Types');
+
+% Add a legend
+legend();
+
+% Grid on
+grid on;
