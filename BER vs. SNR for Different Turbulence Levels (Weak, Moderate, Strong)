@@ -1,0 +1,44 @@
+% MATLAB Code: BER vs. SNR for Different Turbulence Levels (Weak, Moderate, Strong)
+
+% Clear previous variables and close figures
+clear; clc; close all;
+
+% Define SNR range (in dB)
+SNR_dB = 0:1:30;
+
+% Convert SNR from dB to linear scale
+SNR_linear = 10.^(SNR_dB/10);
+
+% Define Q-function
+Qfunc = @(x) 0.5 * erfc(x ./ sqrt(2));
+
+% Define turbulence levels: weak, moderate, strong
+% The values of k1, k2, and k3 can be adjusted to reflect different levels of phase distortions
+k1 = 1;  % Weak turbulence scaling factor
+k2 = 2;  % Moderate turbulence scaling factor
+k3 = 4;  % Strong turbulence scaling factor
+
+% Calculate BER for each turbulence level using BPSK and the Q-function
+BER_weak = Qfunc(sqrt(2 * k1 * SNR_linear));
+BER_moderate = Qfunc(sqrt(2 * k2 * SNR_linear));
+BER_strong = Qfunc(sqrt(2 * k3 * SNR_linear));
+
+% Plot the BER vs. SNR for each turbulence level
+figure;
+semilogy(SNR_dB, BER_weak, 'b-o', 'LineWidth', 2, 'DisplayName', 'Weak Turbulence');
+hold on;
+semilogy(SNR_dB, BER_moderate, 'g-s', 'LineWidth', 2, 'DisplayName', 'Moderate Turbulence');
+semilogy(SNR_dB, BER_strong, 'r-d', 'LineWidth', 2, 'DisplayName', 'Strong Turbulence');
+
+% Add labels and title
+xlabel('SNR (dB)');
+ylabel('BER');
+title('BER vs. SNR for Different Turbulence Levels (Weak, Moderate, Strong)');
+grid on;
+legend('show');
+set(gca, 'YScale', 'log'); % Set y-axis to logarithmic scale
+
+% Annotate graph with turbulence descriptions
+text(10, 1e-1, 'Strong Turbulence', 'Color', 'red', 'FontSize', 10);
+text(15, 1e-3, 'Moderate Turbulence', 'Color', 'green', 'FontSize', 10);
+text(20, 1e-5, 'Weak Turbulence', 'Color', 'blue', 'FontSize', 10);
