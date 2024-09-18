@@ -1,0 +1,13 @@
+distances = linspace(100, 1000, 100);
+snr_no_ao = 30 ./ distances;  % SNR without adaptive optics
+snr_with_ao = 100 ./ distances;  % SNR with adaptive optics
+
+figure;
+plot(distances, snr_no_ao, 'r--', 'LineWidth', 2);
+hold on;
+plot(distances, snr_with_ao, 'b-', 'LineWidth', 2);
+title('SNR vs. Distance with and without Adaptive Optics');
+xlabel('Distance (m)');
+ylabel('SNR (dB)');
+legend('Without Adaptive Optics', 'With Adaptive Optics');
+grid on;
