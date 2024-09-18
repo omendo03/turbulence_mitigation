@@ -1,0 +1,17 @@
+% Figures 3 and 4 (BER modified)
+clc; clear variables; close all;
+
+#rng(3420); # Care needed with seeed.
+
+% Distances
+d1 = 500; d2 = 200;
+
+% Power allocation coefficients
+a1 = 0.75; a2 = 0.25;
+
+N = 5e7
+eta = 4; % Path loss exponent
+
+% Rayleigh fading channels
+function ray = RayleighFading(eta, d, block)
+  ray = sqrt(d^-eta)*(randn(block, 1) + 1i*randn(block, 1))/sqrt(2);
