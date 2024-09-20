@@ -1,45 +1,61 @@
-% MATLAB Code: BER vs. SNR for Different Turbulence Levels (Weak, Moderate, Strong)
+% MATLAB Code for BER vs. SNR Considering Absorption and Scattering for Different Water Types
 
-% Clear previous variables and close figures
-clear; clc; close all;
+% Parameters
+SNR_dB = linspace(0, 40, 100);  % SNR range from 0 to 40 dB
+SNR_linear = 10.^(SNR_dB / 10);  % Convert SNR from dB to linear scale
 
-% Define SNR range (in dB)
-SNR_dB = 0:1:30;
+% Absorption coefficients for different water types
+% These are example values; adjust based on actual data
+absorption = [0.1, 0.2, 0.5];  % Absorption coefficients for pure sea water, clean ocean water, coastal ocean water
 
-% Convert SNR from dB to linear scale
-SNR_linear = 10.^(SNR_dB/10);
+% BER for pure sea water (solid line)
+BER_pure_sea = qfunc(sqrt(2 * max(0, SNR_linear - absorption(1))));  % Ensure non-negative values
 
-% Define Q-function
-Qfunc = @(x) 0.5 * erfc(x ./ sqrt(2));
+% BER for clean ocean water (dashed line)
+BER_clean_ocean = qfunc(sqrt(2 * max(0, SNR_linear - absorption(2))));
 
-% Define turbulence levels: weak, moderate, strong
-% The values of k1, k2, and k3 can be adjusted to reflect different levels of phase distortions
-k1 = 1;  % Weak turbulence scaling factor
-k2 = 2;  % Moderate turbulence scaling factor
-k3 = 4;  % Strong turbulence scaling factor
+% BER for coastal ocean water (dotted line)
+BER_coastal_ocean = qfunc(sqrt(2 * max(0, SNR_linear - absorption(3))));
 
-% Calculate BER for each turbulence level using BPSK and the Q-function
-BER_weak = Qfunc(sqrt(2 * k1 * SNR_linear));
-BER_moderate = Qfunc(sqrt(2 * k2 * SNR_linear));
-BER_strong = Qfunc(sqrt(2 * k3 * SNR_linear));
-
-% Plot the BER vs. SNR for each turbulence level
+% Plot the results
 figure;
-semilogy(SNR_dB, BER_weak, 'b-o', 'LineWidth', 2, 'DisplayName', 'Weak Turbulence');
+% Solid line for pure sea water
+semilogy(SNR_dB, BER_pure_sea, '-r', 'LineWidth', 2.5);  % Solid red line
+
 hold on;
-semilogy(SNR_dB, BER_moderate, 'g-s', 'LineWidth', 2, 'DisplayName', 'Moderate Turbulence');
-semilogy(SNR_dB, BER_strong, 'r-d', 'LineWidth', 2, 'DisplayName', 'Strong Turbulence');
+
+% Dashed line for clean ocean water
+semilogy(SNR_dB, BER_clean_ocean, '--b', 'LineWidth', 2.5);  % Dashed blue line
+
+% Dotted line for coastal ocean water
+semilogy(SNR_dB, BER_coastal_ocean, ':g', 'LineWidth', 2.5);  % Dotted green line
 
 % Add labels and title
-xlabel('SNR (dB)');
-ylabel('BER');
-title('BER vs. SNR for Different Turbulence Levels (Weak, Moderate, Strong)');
-grid on;
-legend('show');
-set(gca, 'YScale', 'log'); % Set y-axis to logarithmic scale
+xlabel('SNR (dB)', 'FontSize', 14, 'FontWeight', 'bold');
+ylabel('BER', 'FontSize', 14, 'FontWeight', 'bold');
+title('BER vs. SNR Considering Absorption and Scattering for Different Water Types', 'FontSize', 16, 'FontWeight', 'bold');
 
-% Annotate graph with turbulence descriptions
-text(10, 1e-1, 'Strong Turbulence', 'Color', 'red', 'FontSize', 10);
-text(15, 1e-3, 'Moderate Turbulence', 'Color', 'green', 'FontSize', 10);
-text(20, 1e-5, 'Weak Turbulence', 'Color', 'blue', 'FontSize', 10);
+% Set axis limits for better comparison
+xlim([0 40]);
+ylim([1e-6 1]);  % Ensure BER values are visible on a logarithmic scale
+
+% Add grid for better visibility
+grid on;
+
+% Set logarithmic scale for BER
+set(gca, 'YScale', 'log');
+
+% Add legend to distinguish the curves
+legend('Pure Sea Water', 'Clean Ocean Water', 'Coastal Ocean Water', 'Location', 'SouthWest', 'FontSize', 12);
+
+% Customize tick marks for better visibility
+set(gca, 'XTick', 0:5:40);
+set(gca, 'YTick', [1e-6 1e-5 1e-4 1e-3 1e-2 1e-1 1]);
+
+% Customize line and marker properties
+set(gca, 'LineWidth', 1.5);  % Thicker axis lines
+set(gca, 'FontSize', 12);    % Increase font size for axis numbers and ticks
+
+% Hold off to stop plotting on the current figure
+hold off;
 
