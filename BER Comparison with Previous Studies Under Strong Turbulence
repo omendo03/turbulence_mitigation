@@ -1,16 +1,46 @@
-ber_weak_turbulence = 0.2 * exp(-snr_values / 12);
-ber_strong_turbulence = 0.4 * exp(-snr_values / 8);
-ber_other_study_weak = 0.3 * exp(-snr_values / 10);
-ber_other_study_strong = 0.6 * exp(-snr_values / 6);
+% MATLAB Code for BER Comparison with Previous Studies Under Strong Turbulence
 
+% Parameters
+SNR_dB = linspace(0, 40, 100);  % SNR range from 0 to 40 dB
+SNR_linear = 10.^(SNR_dB / 10);  % Convert SNR from dB to linear scale
+
+% BER for the current system under strong turbulence
+BER_current = qfunc(sqrt(2 * max(0, SNR_linear - 0.3)));  % BER with turbulence mitigation
+
+% BER for Study A (Sharma et al. [6])
+BER_studyA = qfunc(sqrt(2 * max(0, SNR_linear - 1)));  % BER for Study A (Sharma et al.)
+
+% BER for Study B (Yang et al. [5])
+BER_studyB = qfunc(sqrt(2 * max(0, SNR_linear - 0.7)));  % BER for Study B (Yang et al.)
+
+% Plot the results
 figure;
-semilogy(snr_values, ber_weak_turbulence, 'b-', 'LineWidth', 2);
+semilogy(SNR_dB, BER_current, 'r-', 'LineWidth', 2, 'Marker', 'o');  % Current system under turbulence
 hold on;
-semilogy(snr_values, ber_strong_turbulence, 'r-', 'LineWidth', 2);
-semilogy(snr_values, ber_other_study_weak, 'b--', 'LineWidth', 2);
-semilogy(snr_values, ber_other_study_strong, 'r--', 'LineWidth', 2);
-title('BER Comparison with Other Studies in Weak and Strong Turbulence');
-xlabel('SNR (dB)');
-ylabel('BER');
-legend('Our Study - Weak', 'Our Study - Strong', 'Other Study - Weak', 'Other Study - Strong');
+semilogy(SNR_dB, BER_studyA, 'b--', 'LineWidth', 2, 'Marker', 'x');  % BER for Study A
+semilogy(SNR_dB, BER_studyB, 'g:', 'LineWidth', 2, 'Marker', 's');   % BER for Study B
+
+% Add labels and title
+xlabel('SNR (dB)', 'FontSize', 12);
+ylabel('BER', 'FontSize', 12);
+title('BER Comparison with Previous Studies Under Strong Turbulence', 'FontSize', 14);
+
+% Set axis limits for better comparison
+xlim([0 40]);
+ylim([1e-6 1]);  % Ensure BER values are visible on a logarithmic scale
+
+% Add grid for better visibility
 grid on;
+
+% Set logarithmic scale for BER
+set(gca, 'YScale', 'log');
+
+% Add legend to distinguish the curves
+legend('Current System', 'Study A (Sharma et al.)', 'Study B (Yang et al.)', 'Location', 'SouthWest');
+
+% Customize tick marks for better visibility
+set(gca, 'XTick', 0:5:40);
+set(gca, 'YTick', [1e-6 1e-5 1e-4 1e-3 1e-2 1e-1 1]);
+
+% Hold off to stop plotting on the current figure
+hold off;
