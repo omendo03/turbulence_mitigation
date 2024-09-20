@@ -1,13 +1,27 @@
-distances = linspace(100, 1000, 100);
-snr_no_ao = 30 ./ distances;  % SNR without adaptive optics
-snr_with_ao = 100 ./ distances;  % SNR with adaptive optics
+% MATLAB Code for SNR vs. Distance with and without AO
 
+% Parameters
+C_n2 = 1e-14; % Refractive index structure parameter (Kolmogorov turbulence)
+wavelength = 532e-9; % Optical wavelength (meters)
+L = linspace(100, 1000, 100); % Distance from 100m to 1000m
+k = 2*pi/wavelength; % Wavenumber
+
+% Rytov Variance calculation for turbulence
+sigma_R2 = 1.23 * C_n2 * k^(7/6) * L.^(11/6);
+
+% SNR without AO (decreases with distance and turbulence)
+SNR_no_AO = 30 - sigma_R2; % Assume initial SNR of 30dB
+
+% SNR with AO (compensates for phase distortions)
+SNR_with_AO = 30 - (sigma_R2 * 0.5); % AO reduces turbulence by 50%
+
+% Plot
 figure;
-plot(distances, snr_no_ao, 'r--', 'LineWidth', 2);
+plot(L, SNR_no_AO, 'r-', 'LineWidth', 2);
 hold on;
-plot(distances, snr_with_ao, 'b-', 'LineWidth', 2);
-title('SNR vs. Distance with and without Adaptive Optics');
+plot(L, SNR_with_AO, 'b-', 'LineWidth', 2);
 xlabel('Distance (m)');
 ylabel('SNR (dB)');
-legend('Without Adaptive Optics', 'With Adaptive Optics');
+title('SNR vs. Distance with and without Adaptive Optics');
+legend('Without AO', 'With AO');
 grid on;
