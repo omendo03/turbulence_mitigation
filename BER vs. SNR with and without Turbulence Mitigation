@@ -29,3 +29,4 @@ ylabel('BER');
 title('BER vs. SNR with and without Turbulence Mitigation');
 legend('Without Turbulence Mitigation', 'With Turbulence Mitigation (AO applied)');
 grid on;
+
