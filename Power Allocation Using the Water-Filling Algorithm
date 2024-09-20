@@ -1,13 +1,19 @@
-channel_gain = [0.8, 0.5, 0.3, 0.1];  % Channel gains
-noise_power = 0.01 * ones(1, 4);  % Noise power for each channel
-total_power = 10;  % Total power to be allocated
-lambda_val = (total_power + sum(noise_power ./ channel_gain)) / length(channel_gain);
-power_allocation = max(0, (1 / lambda_val) - (noise_power ./ channel_gain));
+% MATLAB Code for Power Allocation Using the Water-Filling Algorithm
 
+% Parameters
+P_total = 100; % Total power (W)
+N = [1, 2, 3, 4]; % Noise power for each channel
+h = [10, 7, 5, 3]; % Channel gain for each channel
+n_channels = length(N);
+
+% Water-filling algorithm
+water_level = (P_total + sum(N ./ h)) / n_channels;
+P_alloc = max(0, water_level - N ./ h); % Power allocation for each channel
+
+% Plot
 figure;
-bar(1:length(channel_gain), power_allocation);
-title('Power Allocation using Water-Filling Algorithm');
-xlabel('Channel Index');
-ylabel('Power Allocated');
+bar(1:n_channels, P_alloc);
+xlabel('Channel');
+ylabel('Power Allocation (W)');
+title('Power Allocation Using the Water-Filling Algorithm');
 grid on;
-
